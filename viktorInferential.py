@@ -3,9 +3,6 @@ import matplotlib.pyplot as plt
 import scipy.stats as st
 import numpy as np
 
-subjectDescription = pd.read_csv("dataset1.csv")
-wellBeing = pd.read_csv("dataset3.csv")
-
 def totalScreenTime():
     #New feature
     #Finds the total screen time per individual
@@ -14,6 +11,7 @@ def totalScreenTime():
     colList.remove("ID")
     watchTime["totalTime"] = watchTime[colList].sum(axis=1)
     watchTime.drop(watchTime.iloc[:,1:9], inplace=True, axis=1) #Remaining ID and total watch time
+    return watchTime
 
 def twoSampleTest(df1, df2, col):
     x_bar1 = st.tmean(df1[col])
@@ -35,49 +33,55 @@ def plot(df, col, title):
     plt.ylabel("Population")
     plt.show()
 
-#New feature
-#Well being score
-#Mode of all other ratings
-colList = list(wellBeing)
-colList.remove("ID")
-wellBeingMode = wellBeing[colList].mode(axis=1)
-wellBeing["wellBeingScore"] = wellBeingMode[0]
-wellBeing.drop(wellBeing.iloc[:,1:15], inplace=True, axis=1)
+def wellBeingScore(wellBeing):
+    #New feature
+    #Well being score
+    #Mode of all other ratings
+    colList = list(wellBeing)
+    colList.remove("ID")
+    wellBeingMode = wellBeing[colList].mode(axis=1)
+    wellBeing["wellBeingScore"] = wellBeingMode[0]
+    wellBeing.drop(wellBeing.iloc[:,1:15], inplace=True, axis=1)
+    return wellBeing
 
-#Merge of dataframes on ID
-dfCombined = subjectDescription.merge(wellBeing, on="ID")#.merge(watchTime, on="ID")
+def main():
+    subjectDescription = pd.read_csv("dataset1.csv")
+    wellBeing = pd.read_csv("dataset3.csv")
+    wellBeing = wellBeingScore(wellBeing)
+    #Merge of dataframes on ID
+    dfCombined = subjectDescription.merge(wellBeing, on="ID")#.merge(watchTime, on="ID")
 
-dfNonMinority = dfCombined.loc[dfCombined['minority'] == 0]
-dfMinority = dfCombined.loc[dfCombined['minority'] == 1]
-dfNonMale = dfCombined.loc[dfCombined['gender'] == 0]
-dfMale = dfCombined.loc[dfCombined['gender'] == 1]
-dfNonDeprived = dfCombined.loc[dfCombined['deprived'] == 0]
-dfDeprived = dfCombined.loc[dfCombined['deprived'] == 1]
+    dfNonMinority = dfCombined.loc[dfCombined['minority'] == 0]
+    dfMinority = dfCombined.loc[dfCombined['minority'] == 1]
+    dfNonMale = dfCombined.loc[dfCombined['gender'] == 0]
+    dfMale = dfCombined.loc[dfCombined['gender'] == 1]
+    dfNonDeprived = dfCombined.loc[dfCombined['deprived'] == 0]
+    dfDeprived = dfCombined.loc[dfCombined['deprived'] == 1]
 
-#two sample t-test
+    #two sample t-test
 
-#Null hypotheses: Living in a deprived area doesnt affect well being
-#T-stat -6.81
-#P 0.000000
-print("Deprived area effect on happiness")
-twoSampleTest(dfDeprived, dfNonDeprived, "wellBeingScore")
-plot(dfDeprived,"wellBeingScore", "Deprived")
-plot(dfNonDeprived,"wellBeingScore", "Non-deprived")
+    #Null hypotheses: Living in a deprived area doesnt affect well being
+    #T-stat -6.81
+    #P 0.000000
+    print("Deprived area effect on happiness")
+    twoSampleTest(dfDeprived, dfNonDeprived, "wellBeingScore")
+    plot(dfDeprived,"wellBeingScore", "Deprived")
+    plot(dfNonDeprived,"wellBeingScore", "Non-deprived")
 
-#Null hypotheses: Being a minority doesnt affect well being
-#T-stat 4.49
-#P 0.000007
-print("Minority effect on happiness")
-twoSampleTest(dfMinority, dfNonMinority, "wellBeingScore")
-plot(dfMinority,"wellBeingScore", "Minority")
-plot(dfNonMinority,"wellBeingScore", "Non-minority")
+    #Null hypotheses: Being a minority doesnt affect well being
+    #T-stat 4.49
+    #P 0.000007
+    print("Minority effect on happiness")
+    twoSampleTest(dfMinority, dfNonMinority, "wellBeingScore")
+    plot(dfMinority,"wellBeingScore", "Minority")
+    plot(dfNonMinority,"wellBeingScore", "Non-minority")
 
-#Null hyporheses: Gender doesn't affect well being
-#T-Stat 78.36
-#P 0.000000
-print("Gender effect on happiness")
-twoSampleTest(dfMale, dfNonMale, "wellBeingScore")
-plot(dfMale,"wellBeingScore", "Male")
-plot(dfNonMale,"wellBeingScore", "Non-male")
+    #Null hyporheses: Gender doesn't affect well being
+    #T-Stat 78.36
+    #P 0.000000
+    print("Gender effect on happiness")
+    twoSampleTest(dfMale, dfNonMale, "wellBeingScore")
+    plot(dfMale,"wellBeingScore", "Male")
+    plot(dfNonMale,"wellBeingScore", "Non-male")
 
 
