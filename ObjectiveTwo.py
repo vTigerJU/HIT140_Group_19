@@ -30,14 +30,18 @@ def linRegResult(x,y, test_size):
     x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=test_size, random_state=0)
     base = baseLineModel(y_train, y_test)
     prediction, intercept, coef = linReg(x_train, x_test, y_train)
-    baseR2 = adjustedR2(y_test, base, len(y_test), 1)
+    baseR2 = adjustedR2(y_test, base, len(y_test), 0)
+    rmse_base = rmse(y_test, base)
     predictionR2 = adjustedR2(y_test, prediction, len(y_test),x.shape[1])
+    rmse_pred = rmse(y_test,prediction)
     result = {
     'predicted value': "null",
     'intercept': intercept,
     'coef': coef,
     'predictionR2': predictionR2,
-    'baseR2': baseR2
+    'baseR2': baseR2,
+    'rmseNorm pred':rmse_pred,
+    'rmseNorm base':rmse_base
     }
     return pd.DataFrame([result])
 
@@ -56,12 +60,20 @@ def baseLineModel(y_train, y_test):
     return y_pred
     #standardMetrics(y_test,y_pred, len(y_test))
 
+def rmse(y_test, y_pred):
+    rmse =  math.sqrt(metrics.mean_squared_error(y_test, y_pred))
+    # Normalised Root Mean Square Error
+    y_max = y_test.max()
+    y_min = y_test.min()
+    rmse_norm = rmse / (y_max - y_min)
+    return rmse_norm.iloc[0]
+
 def adjustedR2(y_test, y_pred, sample_size, p):
     '''Adjusted R2 takes into account if multiple explanatory variables'''
     r2 = metrics.r2_score(y_true= y_test,y_pred= y_pred)
     return round(1 - (1 - r2)*((sample_size-1)/(sample_size-p-1)), 4) # result from 0 -> 1 . Close to 1 is better
 
-def standardMetrics(y_test, y_pred, sample_size, p = 1):   
+def standardMetrics(y_test, y_pred, sample_size, p = 0):   
     '''Commonly used metrics for evaluating a linear regression'''  
     # Mean Absolute Error
     mae = metrics.mean_absolute_error(y_test, y_pred)
@@ -97,14 +109,13 @@ def wellBeingScore(wellBeing):
     wellBeing["wellBeingScore"] = wellBeingMode[0]
     return wellBeing
 
-
 def investigation(x_col, y_col, df, test_size):
-    result_df = pd.DataFrame(columns=['predicted value','intercept', 'coef', 'predictionR2', 'baseR2'])
+    result_df = None
     x = df[x_col]
     for col in y_col: 
         result = linRegResult(x,df[[col]],test_size)
         result['predicted value'] = col
-        if result_df.empty:
+        if result_df is None:
             result_df = result
         else:
             result_df = pd.concat([result_df, result ], ignore_index=True)
@@ -147,5 +158,5 @@ wellBeingColList = list(wellBeing)
 wellBeingColList.remove("ID")
 timeColList = list(watchTime)
 timeColList.remove("ID")
-multipleInvestigations(wellBeingColList, df, 0.4)
-screenSourceInvestigations(timeColList, wellBeingColList, df, 0.4) #Uses different ScreenUsages as explanatory variable
+multipleInvestigations(wellBeingColList, df, 0.2)
+screenSourceInvestigations(timeColList, wellBeingColList, df, 0.2) #Uses different ScreenUsages as explanatory variable
