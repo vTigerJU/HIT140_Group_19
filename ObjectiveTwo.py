@@ -160,3 +160,69 @@ timeColList = list(watchTime)
 timeColList.remove("ID")
 multipleInvestigations(wellBeingColList, df, 0.2)
 screenSourceInvestigations(timeColList, wellBeingColList, df, 0.2) #Uses different ScreenUsages as explanatory variable
+
+def linRegResult(x, y, test_size):
+    '''Returns a row with all important information from linReg and includes scatter plot for predictions vs actuals'''
+    x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=test_size, random_state=0)
+    
+    # Baseline model and linear regression model
+    base = baseLineModel(y_train, y_test)
+    prediction, intercept, coef = linReg(x_train, x_test, y_train)
+    
+    # Plotting Actual vs Predicted values
+    plt.figure(figsize=(10, 6))
+    plt.scatter(y_test, prediction, color='blue', label='Predicted vs Actual')
+    plt.plot([y_test.min(), y_test.max()], [y_test.min(), y_test.max()], 'r--', label='Perfect Fit Line')  # 45-degree line
+    plt.xlabel('Actual Values')
+    plt.ylabel('Predicted Values')
+    plt.title('Actual vs Predicted Values')
+    plt.legend()
+    plt.show()
+    
+    # Calculate metrics
+    baseR2 = adjustedR2(y_test, base, len(y_test), 0)
+    rmse_base = rmse(y_test, base)
+    predictionR2 = adjustedR2(y_test, prediction, len(y_test), x.shape[1])
+    rmse_pred = rmse(y_test, prediction)
+    
+    # Store results in a dictionary and return as a DataFrame
+    result = {
+        'predicted value': "null",
+        'intercept': intercept,
+        'coef': coef,
+        'predictionR2': predictionR2,
+        'baseR2': baseR2,
+        'rmseNorm pred': rmse_pred,
+        'rmseNorm base': rmse_base
+    }
+    
+    return pd.DataFrame([result])
+
+# Select independent and dependent variables
+x = df[['totalTime']]  # Example: using totalTime as the independent variable
+y = df[['wellBeingScore']]  # Example: using wellBeingScore as the dependent variable
+
+# Call linRegResult to perform regression and display results
+result = linRegResult(x, y, test_size=0.2)
+
+# Print the result DataFrame with regression details
+print(result)
+
+
+
+def compositeWellBeingScore(wellBeing): 
+    # Calculate the mean of all well-being columns to create a composite score
+    colList = list(wellBeing)
+    colList.remove("ID")
+    wellBeing['compositeScore'] = wellBeing[colList].mean(axis=1)
+    return wellBeing
+
+# Update the well-being score with the composite score
+wellBeing = compositeWellBeingScore(wellBeing)
+
+# Now merge the updated wellBeing DataFrame with subjectDescription and watchTime
+df = subjectDescription.merge(wellBeing, on="ID").merge(watchTime, on="ID")
+
+# Now, the 'compositeScore' column should be available in df
+print(df.head())  # Check if 'compositeScore' is included in the DataFrame
+
