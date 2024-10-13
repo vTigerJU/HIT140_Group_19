@@ -160,5 +160,3 @@ timeColList = list(watchTime)
 timeColList.remove("ID")
 multipleInvestigations(wellBeingColList, df, 0.2)
 screenSourceInvestigations(timeColList, wellBeingColList, df, 0.2) #Uses different ScreenUsages as explanatory variable
-
-scatterPlot("wellBeingScore","totalTime", "name",df)
