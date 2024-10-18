@@ -1,3 +1,5 @@
+#NOTE: THIS IS ONE OF THE MAIN ASSIGNMENT FILES. IT SHOULD BE RUN BEFORE THE MAIN.PY FILE
+
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
