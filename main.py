@@ -1,3 +1,5 @@
+#NOTE: PLEASE RUN THIS FILE ONLY AFTER RUNNING THE EDA.PY FILE. THANK YOU!
+
 from sklearn.feature_selection import RFE
 from sklearn.linear_model import RidgeCV, LinearRegression
 from sklearn.model_selection import train_test_split
